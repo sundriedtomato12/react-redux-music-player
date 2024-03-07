@@ -1,0 +1,42 @@
+[
+  {
+    "id": "uuid-1",
+    "name": "Destination",
+    "artist": "Crash Adams",
+    "imagePath": "images/destination_by_crash_adams.svg",
+    "audioPath": "audio/destination_by_crash_adams.mp3",
+    "totalDuration": 163
+  },
+  {
+    "id": "uuid-2",
+    "name": "Feather",
+    "artist": "Sabrina Carpenter",
+    "imagePath": "images/feather_by_sabrina_carpenter.svg",
+    "audioPath": "audio/feather_by_sabrina_carpenter.mp3",
+    "totalDuration": 185
+  },
+  {
+    "id": "uuid-3",
+    "name": "Give Me A Kiss",
+    "artist": "Crash Adams",
+    "imagePath": "images/give_me_a_kiss_by_crash_adams.svg",
+    "audioPath": "audio/give_me_a_kiss_by_crash_adams.mp3",
+    "totalDuration": 171
+  },
+  {
+    "id": "uuid-4",
+    "name": "Good Side",
+    "artist": "Crash Adams",
+    "imagePath": "images/good_side_by_crash_adams.svg",
+    "audioPath": "audio/good_side_by_crash_adams.mp3",
+    "totalDuration": 163
+  },
+  {
+    "id": "uuid-5",
+    "name": "Vampire",
+    "artist": "Olivia Rodrigo",
+    "imagePath": "images/vampire_by_olivia_rodrigo.svg",
+    "audioPath": "audio/vampire_by_olivia_rodrigo.mp3",
+    "totalDuration": 219
+  }
+]
