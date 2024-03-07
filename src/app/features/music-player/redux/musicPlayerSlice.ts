@@ -1,14 +1,17 @@
-import type { PayloadAction } from '@reduxjs/toolkit'
-import type { AppThunk } from '../../../store'
+import { createSelector, type PayloadAction } from '@reduxjs/toolkit'
+import type { AppThunk, RootState } from '../../../store'
 import { createAppSlice } from '../../../createAppSlice'
+import songLibrary from '../library.json'
+import { useSelector } from 'react-redux'
 
-export interface SongPlayTimeState {
+export interface SongState {
+  playing: boolean
   // time in seconds
   currentTime: number
-  totalTime: number
 }
 
 export interface SongInfo {
+  id: string
   name: string
   artist: string
   imagePath: string
@@ -20,47 +23,11 @@ const initialShuffleState: boolean = false
 const initialLoopState: boolean = false
 const initialLoopOneState: boolean = false
 
-const initialSongList: SongInfo[] = [
-  {
-    name: 'Destination',
-    artist: 'Crash Adams',
-    imagePath: 'public/images/destination_by_crash_adams.svg',
-    audioPath: 'public/audio/destination_by_crash_adams.mp3',
-    totalDuration: 163,
-  },
-  {
-    name: 'Feather',
-    artist: 'Sabrina Carpenter',
-    imagePath: 'public/images/feather_by_sabrina_carpenter.svg',
-    audioPath: 'public/audio/feather_by_sabrina_carpenter.mp3',
-    totalDuration: 185,
-  },
-  {
-    name: 'Give Me A Kiss',
-    artist: 'Crash Adams',
-    imagePath: 'public/images/give_me_a_kiss_by_crash_adams.svg',
-    audioPath: 'public/audio/give_me_a_kiss_by_crash_adams.mp3',
-    totalDuration: 171,
-  },
-  {
-    name: 'Good Side',
-    artist: 'Crash Adams',
-    imagePath: 'public/images/good_side_by_crash_adams.svg',
-    audioPath: 'public/audio/good_side_by_crash_adams.mp3',
-    totalDuration: 163,
-  },
-  {
-    name: 'Vampire',
-    artist: 'Olivia Rodrigo',
-    imagePath: 'public/images/vampire_by_olivia_rodrigo.svg',
-    audioPath: 'public/audio/vampire_by_olivia_rodrigo.mp3',
-    totalDuration: 219,
-  },
-]
+const initialSongList: SongInfo[] = songLibrary
 
-const initialSongState: SongPlayTimeState = {
+const initialSongState: SongState = {
+  playing: false,
   currentTime: 0,
-  totalTime: 100,
 }
 
 function shuffleSongs(songs: SongInfo[]) {
@@ -75,31 +42,65 @@ function shuffleSongs(songs: SongInfo[]) {
 
 export const songListSlice = createAppSlice({
   name: 'songList',
-  initialState: initialSongList,
+  initialState: {
+    songs: initialSongList,
+    currentSongIndex: 0,
+  },
   reducers: create => ({
     // when user clicks on song from list
-    reset: create.reducer((state, action: PayloadAction<SongInfo>) => {
+    resetSongList: create.reducer((state, action: PayloadAction<string>) => {
       // if shuffle toggle is OFF
-      return [
-        action.payload,
-        ...state.filter(song => song.name !== action.payload.name),
-      ]
+      const songSelectedIndex = songLibrary.findIndex(
+        song => song.id == action.payload,
+      )
+      return {
+        songs: [
+          ...songLibrary.slice(songSelectedIndex, songLibrary.length),
+          ...songLibrary.slice(0, songSelectedIndex),
+        ],
+        currentSongIndex: 0,
+      }
     }),
-    resetShuffle: create.reducer((state, action: PayloadAction<SongInfo>) => {
-      // else if shuffle toggle is ON
-      return [
-        action.payload,
-        ...shuffleSongs(
-          state.filter(song => song.name !== action.payload.name),
-        ),
-      ]
+    resetSongListShuffle: create.reducer(
+      (state, action: PayloadAction<string>) => {
+        // else if shuffle toggle is ON
+        const songSelectedIndex = songLibrary.findIndex(
+          song => song.id == action.payload,
+        )
+        return {
+          songs: [
+            songLibrary[songSelectedIndex],
+            ...shuffleSongs([
+              ...songLibrary.filter(song => song.id !== action.payload),
+            ]),
+          ],
+          currentSongIndex: 0,
+        }
+      },
+    ),
+    playNextSong: create.reducer(state => {
+      const nextIndex = state.currentSongIndex + 1
+      if (nextIndex < state.songs.length) {
+        state.currentSongIndex = nextIndex
+      } else {
+        state.currentSongIndex = 0
+      }
+    }),
+    playPreviousSong: create.reducer(state => {
+      const prevIndex = state.currentSongIndex - 1
+      if (prevIndex >= 0) {
+        state.currentSongIndex = prevIndex
+      } else {
+        state.currentSongIndex = state.songs.length - 1
+      }
     }),
   }),
   selectors: {
-    selectCurrentSongList: songList => songList,
-    selectCurrentSong: songList => songList[0],
-    selectNextSong: songList => songList[1],
-    selectNextSongs: songList => songList.slice(1),
+    selectCurrentSong: state => state.songs[state.currentSongIndex],
+    peekQueue: createSelector(
+      songList => songList,
+      songList => songList.songs.slice(songList.currentSongIndex),
+    ),
   },
 })
 
@@ -107,8 +108,8 @@ export const shuffleStateSlice = createAppSlice({
   name: 'shuffleState',
   initialState: initialShuffleState,
   reducers: create => ({
-    turnOff: create.reducer(() => false),
-    turnOn: create.reducer(() => true),
+    turnShuffleOff: create.reducer(() => false),
+    turnShuffleOn: create.reducer(() => true),
   }),
 })
 
@@ -116,8 +117,8 @@ export const loopStateSlice = createAppSlice({
   name: 'loopState',
   initialState: initialLoopState,
   reducers: create => ({
-    turnOff: create.reducer(() => false),
-    turnOn: create.reducer(() => true),
+    turnLoopOff: create.reducer(() => false),
+    turnLoopOn: create.reducer(() => true),
   }),
 })
 
@@ -125,28 +126,48 @@ export const loopOneStateSlice = createAppSlice({
   name: 'loopOneState',
   initialState: initialLoopOneState,
   reducers: create => ({
-    turnOff: create.reducer(() => false),
-    turnOn: create.reducer(() => true),
+    turnLoopOneOff: create.reducer(() => false),
+    turnLoopOneOn: create.reducer(() => true),
   }),
 })
 
 export const songPlayTimeSlice = createAppSlice({
-  name: 'songPlayTime',
+  name: 'songPlayState',
   initialState: initialSongState,
   reducers: create => ({
-    increase: create.reducer(state => {
+    playSong: create.reducer(state => {
+      state.playing = true
       state.currentTime += 1
     }),
-    increaseByAmount: create.reducer((state, action: PayloadAction<number>) => {
+    pauseSong: create.reducer(state => {
+      state.playing = false
+    }),
+    restartSong: create.reducer(state => {
+      state.currentTime = 0
+    }),
+    fastForwardSong: create.reducer((state, action: PayloadAction<number>) => {
       state.currentTime += action.payload
     }),
-    decreaseByAmount: create.reducer((state, action: PayloadAction<number>) => {
+    rewindSong: create.reducer((state, action: PayloadAction<number>) => {
       state.currentTime -= action.payload
     }),
   }),
-  selectors: {
-    selectCurrentPlayTime: songPlayTime => songPlayTime.currentTime,
-    selectSongFinishedStatus: songPlayTime =>
-      songPlayTime.currentTime === songPlayTime.totalTime,
-  },
 })
+
+export const {
+  resetSongList,
+  resetSongListShuffle,
+  playNextSong,
+  playPreviousSong,
+} = songListSlice.actions
+
+export const { selectCurrentSong, peekQueue } = songListSlice.selectors
+
+export const { turnShuffleOff, turnShuffleOn } = shuffleStateSlice.actions
+
+export const { turnLoopOff, turnLoopOn } = loopStateSlice.actions
+
+export const { turnLoopOneOff, turnLoopOneOn } = loopOneStateSlice.actions
+
+export const { playSong, pauseSong, restartSong, fastForwardSong, rewindSong } =
+  songPlayTimeSlice.actions
