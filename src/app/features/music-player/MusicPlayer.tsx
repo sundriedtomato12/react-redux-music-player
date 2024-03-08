@@ -61,6 +61,10 @@ export const MusicPlayer = () => {
     return songList.currentSongIndex === songList.songs.length - 1
   }
 
+  function getRandomNumber(number: number) {
+    return Math.floor(Math.random() * number)
+  }
+
   function toggleLoopModes() {
     if (!isLoop && !isLoopOne) {
       dispatch(turnLoopOn())
@@ -91,12 +95,22 @@ export const MusicPlayer = () => {
   }
 
   function executeEndOfSongAction(): void {
-    if ((!isLastSong() && !isLoopOne) || (isLastSong() && isLoop)) {
+    if (
+      (!isLastSong() && !isLoopOne) ||
+      (isLastSong() && isLoop && !isShuffle)
+    ) {
       dispatch(playNextSong())
       dispatch(restartSong())
     } else if (isLastSong() && !isLoop) {
       dispatch(pauseSong())
     } else if (isLoopOne) {
+      dispatch(restartSong())
+    } else if (isLastSong() && isShuffle && isLoop) {
+      dispatch(
+        resetSongListShuffle(
+          songList.songs[getRandomNumber(songList.songs.length)].id,
+        ),
+      )
       dispatch(restartSong())
     }
   }
