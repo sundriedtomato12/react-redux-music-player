@@ -23,7 +23,7 @@ const initialShuffleState: boolean = false
 const initialLoopState: boolean = false
 const initialLoopOneState: boolean = false
 
-const initialSongList: SongInfo[] = songLibrary
+const initialSongList: SongInfo[] = sortSongsAlphabetically(songLibrary)
 
 const initialSongState: SongState = {
   playing: false,
@@ -38,6 +38,21 @@ function shuffleSongs(songs: SongInfo[]) {
     songs[i] = temp
   }
   return songs
+}
+
+function sortSongsAlphabetically(songs: SongInfo[]) {
+  return songs.sort((a, b) => {
+    const nameA = a.name.toUpperCase()
+    const nameB = b.name.toUpperCase()
+
+    if (nameA < nameB) {
+      return -1
+    }
+    if (nameA > nameB) {
+      return 1
+    }
+    return 0
+  })
 }
 
 export const songListSlice = createAppSlice({

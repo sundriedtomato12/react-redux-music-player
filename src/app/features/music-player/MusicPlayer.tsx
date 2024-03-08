@@ -110,21 +110,20 @@ export const MusicPlayer = () => {
   }
 
   useEffect(() => {
+    if (isSongOver()) {
+      executeEndOfSongAction()
+    }
+  }, [currentSongState.currentTime])
+
+  useEffect(() => {
     let intervalId: any
     const audio = audioRef.current
-    console.log(currentSongState.currentTime)
 
     if (!audio) {
       return
     }
 
-    if (isSongOver()) {
-      console.log('song over')
-      executeEndOfSongAction()
-    }
-
     if (currentSongState.playing) {
-      console.log('play audio ' + currentSongState.currentTime)
       audio.play()
       intervalId = setInterval(() => {
         dispatch(playSong()) // Assuming you have an action creator for playing the song
@@ -133,10 +132,8 @@ export const MusicPlayer = () => {
       audio.pause()
     }
 
-    audio.currentTime = currentSongState.currentTime
-
     return () => clearInterval(intervalId)
-  }, [currentSongState])
+  }, [currentSongState.playing, currentSong])
 
   return (
     <>
@@ -161,7 +158,9 @@ export const MusicPlayer = () => {
             </title>
           </svg>
         </Box>
-        <Typography fontSize={22}>{currentSong.name}</Typography>
+        <Typography fontSize={22} sx={{ marginTop: '6px' }}>
+          {currentSong.name}
+        </Typography>
         <Typography fontSize={16}>{currentSong.artist}</Typography>
         <Box display="flex" justifyContent="center">
           <Slider
@@ -169,6 +168,8 @@ export const MusicPlayer = () => {
             value={currentSongState.currentTime}
             max={currentSong.totalDuration}
             onChange={(event, newValue) => {
+              const audio = audioRef.current
+              if (!audio) return
               if (Number(newValue) < currentSongState.currentTime) {
                 dispatch(
                   rewindSong(currentSongState.currentTime - Number(newValue)),
@@ -180,6 +181,7 @@ export const MusicPlayer = () => {
                   ),
                 )
               }
+              audio.currentTime = Number(newValue)
             }}
             aria-label="trackbar"
           />
@@ -229,8 +231,17 @@ export const MusicPlayer = () => {
           </IconButton>
           <IconButton
             onClick={() => {
-              dispatch(playNextSong())
-              dispatch(restartSong())
+              if (!isLoopOne && !isShuffle) {
+                dispatch(playNextSong())
+                dispatch(restartSong())
+              } else {
+                dispatch(
+                  resetSongListShuffle(
+                    songList.songs[songList.currentSongIndex + 1].id,
+                  ),
+                )
+                dispatch(restartSong())
+              }
             }}
             size="medium"
           >
@@ -245,8 +256,17 @@ export const MusicPlayer = () => {
           </IconButton>
         </Box>
       </Box>
-      <Box>
-        <List component="nav" aria-label="song-list">
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
+        <List
+          sx={{ width: '200vw', maxWidth: '500px' }}
+          component="nav"
+          aria-label="song-list"
+        >
           {songList.songs.map((song: SongInfo) => (
             <ListItemButton
               key={`${song.id}`}
@@ -266,7 +286,10 @@ export const MusicPlayer = () => {
                   />
                 </svg>
               </ListItemIcon>
-              <ListItemText primary={`${song.name} by ${song.artist}`} />
+              <ListItemText
+                sx={{ marginLeft: '4px' }}
+                primary={`${song.name} by ${song.artist}`}
+              />
             </ListItemButton>
           ))}
         </List>

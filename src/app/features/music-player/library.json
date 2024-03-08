@@ -38,5 +38,13 @@
     "imagePath": "images/vampire_by_olivia_rodrigo.svg",
     "audioPath": "audio/vampire_by_olivia_rodrigo.mp3",
     "totalDuration": 219
+  },
+  {
+    "id": "uuid-6",
+    "name": "Greedy",
+    "artist": "Tate McRae",
+    "imagePath": "images/greedy_by_tate_mcrae.svg",
+    "audioPath": "audio/greedy_by_tate_mcrae.mp3",
+    "totalDuration": 133
   }
 ]
