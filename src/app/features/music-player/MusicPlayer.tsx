@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import {
-  peekQueue,
   selectCurrentSong,
   SongInfo,
   turnLoopOn,
@@ -29,14 +28,11 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider,
   IconButton,
-  Icon,
   Slider,
 } from '@mui/material'
 import RepeatIcon from '@mui/icons-material/Repeat'
 import RepeatOnIcon from '@mui/icons-material/RepeatOn'
-import RepeatOneIcon from '@mui/icons-material/RepeatOne'
 import RepeatOneOnIcon from '@mui/icons-material/RepeatOneOn'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import PauseIcon from '@mui/icons-material/Pause'
@@ -44,9 +40,6 @@ import SkipPreviousIcon from '@mui/icons-material/SkipPrevious'
 import SkipNextIcon from '@mui/icons-material/SkipNext'
 import ShuffleIcon from '@mui/icons-material/Shuffle'
 import ShuffleOnIcon from '@mui/icons-material/ShuffleOn'
-import TrackBar from './components/TrackBar'
-import songLibrary from './library.json'
-import { createSelector } from '@reduxjs/toolkit'
 
 export const MusicPlayer = () => {
   const dispatch = useAppDispatch()
@@ -58,7 +51,6 @@ export const MusicPlayer = () => {
   const currentSongState = useSelector(
     (state: RootState) => state.songPlayState,
   )
-  const songQueue = useAppSelector(peekQueue)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   function isSongOver() {
